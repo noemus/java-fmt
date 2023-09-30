@@ -12,7 +12,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  *  Tokens:
  *  WS - SPACE, TAB, other special whitespace chars except NL
  *  NL - CR, LF, CRLF
- *  EMPTY_LINE - NL after NL followed by WS*
  *  SYMBOL - ~!-+,./*[]{}()&^%|<>?:;
  *  WORD - java identifier or keyword
  *  LINE_COMMENT
@@ -24,6 +23,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  *  NUMBER
  * <p>
  *  Fragments:
+ *  EMPTY_LINE - NL after NL followed by WS*
  *  IMPORTS
  *  PACKAGE_DECL
  *  PARAM_LIST - method/constructor params, record params, (paramValue1, paramValue2, ...)
@@ -38,19 +38,19 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  *  EXPRESSION - arithmetic, string, switch expression, ternary, etc.
  */
 class Lexer {
-    private final byte[] bytes;
+    private final char[] chars;
 
     private int line = 0;
     private int column = 0;
     private int offset = 0;
 
-    private Lexer(byte[] bytes) {
-        this.bytes = bytes;
+    private Lexer(char[] chars) {
+        this.chars = chars;
     }
 
     static Lexer from(Path javaFile) {
         try {
-            return new Lexer(Files.readAllBytes(javaFile));
+            return new Lexer(Files.readString(javaFile, UTF_8).toCharArray());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -62,20 +62,40 @@ class Lexer {
     }
 
     private Token nextToken() {
-        if (column >= bytes.length) {
+        if (offset >= chars.length) {
             return null;
         }
-        return token(1);
+        return parseToken();
+    }
+
+    private Token parseToken() {
+//        switch (peek()) {
+//            case '\r', '\n' -> parseNewLine();
+//            case ''
+//        }
+        return null;
+    }
+
+    private Token parseNewLine() {
+        return null;
+    }
+
+    private char peek() {
+        return chars[offset];
+    }
+
+    private char next() {
+        return chars[offset++];
     }
 
     private Token token(int len) {
-        var token = new Token(line, column, bytes, column, len);
+        var token = new Token(line, column, chars, column, len);
         column += len;
         return token;
     }
 
-    record Token(int line, int column, byte[] content, int offset, int length) implements Fragment {
-        private static final byte[] NL_BYTES = System.lineSeparator().getBytes(UTF_8);
+    record Token(int line, int column, char[] content, int offset, int length) implements Fragment {
+        private static final char[] NL_BYTES = System.lineSeparator().toCharArray();
 
         static Token newLine(int line, int column) {
             return new Token(line, column, NL_BYTES, 0, NL_BYTES.length);
@@ -83,7 +103,7 @@ class Lexer {
 
         @Override
         public String text() {
-            return new String(content, offset, length, UTF_8);
+            return ""; //new String(content, offset, length, UTF_8);
         }
 
         @Override

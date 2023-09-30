@@ -16,6 +16,15 @@ java {
 }
 
 dependencies {
+    //noinspection VulnerableLibrariesLocal
+    implementation 'com.puppycrawl.tools:checkstyle:10.12.3'
+
+    // overriden to mitigate vulnerabilities
+    implementation 'commons-codec:commons-codec:1.15'
+
+    implementation 'net.sf.saxon:Saxon-HE:11.3'
+
+
     testImplementation platform('org.junit:junit-bom:5.9.1')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.3.1'
